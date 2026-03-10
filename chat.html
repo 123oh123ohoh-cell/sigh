@@ -17,7 +17,7 @@
       overflow: hidden;
     }
     .user-list {
-      width: 200px;
+      width: 260px;
       border-right: 1.5px solid #333;
       background: #181818;
       padding: 0;
@@ -36,18 +36,21 @@
       color: #eee;
       transition: background 0.18s, color 0.18s;
       font-size: 1.05em;
+      min-height: 56px;
+      position: relative;
     }
     .user-list li.active, .user-list li:hover {
       background: #232323;
       color: #ffb347;
     }
     .user-list .avatar {
-      width: 38px;
-      height: 38px;
+      width: 44px;
+      height: 44px;
       border-radius: 50%;
       object-fit: cover;
       background: #444;
       border: 2px solid #333;
+      flex-shrink: 0;
     }
     .chat-main {
       flex: 1;
@@ -183,7 +186,7 @@
     </nav>
   </header>
   <div class="chat-container">
-    <div style="display:flex;flex-direction:column;width:200px;background:#181818;border-right:1.5px solid #333;">
+    <div style="display:flex;flex-direction:column;width:260px;background:#181818;border-right:1.5px solid #333;">
       <input id="userSearchInput" type="text" placeholder="Type @ to search users..." style="margin:12px 12px 0 12px;padding:8px 12px;border-radius:8px;border:none;background:#232323;color:#fff;font-size:1em;outline:none;">
         <script>
           // Log out logic
@@ -199,6 +202,14 @@
             }
           });
         </script>
+      <div style="padding:10px 12px 0 12px;">
+        <select id="statusSelect" style="width:100%;padding:6px 10px;border-radius:8px;background:#232323;color:#fff;border:none;font-size:1em;">
+          <option value="online">🟢 Online</option>
+          <option value="dnd">⛔ Do Not Disturb</option>
+          <option value="away">🌙 Away</option>
+          <option value="offline">⚫ Offline</option>
+        </select>
+      </div>
       <ul class="user-list" id="userList" style="flex:1 1 auto;"></ul>
     </div>
     <div class="chat-main">

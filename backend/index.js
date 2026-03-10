@@ -1,9 +1,44 @@
-// Get all users (for chat user list)
-app.get('/api/users', (req, res) => {
-  db.all('SELECT username FROM users', (err, rows) => {
-    if (err) return res.status(500).json({ error: 'DB error' });
-    res.json(rows.map(r => r.username));
-  });
+// --- Chat Messages Endpoints ---
+// Messages table: sender, receiver, content, timestamp
+db.serialize(() => {
+  db.run(`CREATE TABLE IF NOT EXISTS messages (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    sender TEXT,
+    receiver TEXT,
+    content TEXT,
+    timestamp TEXT
+  )`);
+});
+
+// Get chat history with a user (auth required)
+app.get('/api/messages', authenticateToken, (req, res) => {
+  const user1 = req.user.username;
+  const user2 = req.query.user;
+  if (!user2) return res.status(400).json({ error: 'Missing user' });
+  db.all(
+    `SELECT * FROM messages WHERE (sender = ? AND receiver = ?) OR (sender = ? AND receiver = ?) ORDER BY id ASC`,
+    [user1, user2, user2, user1],
+    (err, rows) => {
+      if (err) return res.status(500).json({ error: 'DB error' });
+      res.json(rows || []);
+    }
+  );
+});
+
+// Send a message (auth required)
+app.post('/api/messages', authenticateToken, (req, res) => {
+  const sender = req.user.username;
+  const { receiver, content } = req.body;
+  if (!receiver || !content) return res.status(400).json({ error: 'Missing fields' });
+  const timestamp = new Date().toISOString();
+  db.run(
+    'INSERT INTO messages (sender, receiver, content, timestamp) VALUES (?, ?, ?, ?)',
+    [sender, receiver, content, timestamp],
+    function(err) {
+      if (err) return res.status(500).json({ error: 'DB error' });
+      res.json({ id: this.lastID, sender, receiver, content, timestamp });
+    }
+  );
 });
 
 const express = require('express');
@@ -11,7 +46,6 @@ const cors = require('cors');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const sqlite3 = require('sqlite3').verbose();
-
 
 const app = express();
 const http = require('http');
@@ -26,7 +60,10 @@ const SECRET = 'supersecretkey';
 app.use(cors());
 app.use(express.json({ limit: '10mb' }));
 
-// --- Socket.io Online Status ---
+// All route definitions must be below this point
+
+// --- Socket.io Online Status & User Status ---
+const userStatus = {};
 const onlineUsers = new Set();
 io.on('connection', (socket) => {
   let username = null;
@@ -34,17 +71,39 @@ io.on('connection', (socket) => {
     username = user;
     if (username) {
       onlineUsers.add(username);
+      if (!userStatus[username]) userStatus[username] = 'online';
       io.emit('online_users', Array.from(onlineUsers));
+      io.emit('user_status', userStatus);
     }
   });
   socket.on('disconnect', () => {
     if (username) {
       onlineUsers.delete(username);
       io.emit('online_users', Array.from(onlineUsers));
+      userStatus[username] = 'offline';
+      io.emit('user_status', userStatus);
     }
   });
   socket.on('get_online_users', () => {
     socket.emit('online_users', Array.from(onlineUsers));
+    socket.emit('user_status', userStatus);
+  });
+  // Typing indicator event
+  socket.on('typing', (data) => {
+    for (const [id, s] of io.of('/').sockets) {
+      if (s !== socket && s.handshake && s.handshake.auth && s.handshake.auth.username === data.to) {
+        s.emit('typing', data);
+      }
+    }
+    io.emit('typing', data);
+  });
+  // Set user status
+  socket.on('set_status', (data) => {
+    // data: { username, status }
+    if (data.username && data.status) {
+      userStatus[data.username] = data.status;
+      io.emit('user_status', userStatus);
+    }
   });
 });
 
