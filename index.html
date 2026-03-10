@@ -13,6 +13,7 @@
     <header class="header">
         <a href="#" class="logo"><img src="logo2.png" alt="Logo" style="height:32px;vertical-align:middle;margin-right:8px;">own's hub</a>
         <nav class="nav-links">
+            <a href="chat.html" id="chatHeaderBtn" class="nav-link" style="display:none;">Chat</a>
             <a href="#" class="nav-link">Live</a>
             <a href="#" class="nav-link">Models</a>
             <a href="#" class="nav-link">Categories</a>
@@ -23,6 +24,7 @@
         <div class="search-bar">
             <input type="text" id="searchInput" placeholder="Search models...">
         </div>
+
         <!-- Dropdown for login/profile -->
         <div class="profile-dropdown">
             <button class="profile-btn" id="profileDropdownBtn">👤</button>
@@ -34,7 +36,7 @@
             </div>
         </div>
         <script>
-        // Switch dropdown menu based on login state
+        // Switch dropdown menu and chat button based on login state
         document.addEventListener('DOMContentLoaded', function() {
             function updateDropdownMenu() {
                 const loggedInUser = localStorage.getItem('loggedInUser');
@@ -42,16 +44,19 @@
                 const signoutLink = document.getElementById('signoutLink');
                 const dropdownLogin = document.getElementById('dropdownLogin');
                 const dropdownSignup = document.getElementById('dropdownSignup');
+                const chatHeaderBtn = document.getElementById('chatHeaderBtn');
                 if (loggedInUser) {
                     if (profileLink) profileLink.style.display = '';
                     if (signoutLink) signoutLink.style.display = '';
                     if (dropdownLogin) dropdownLogin.style.display = 'none';
                     if (dropdownSignup) dropdownSignup.style.display = 'none';
+                    if (chatHeaderBtn) chatHeaderBtn.style.display = '';
                 } else {
                     if (profileLink) profileLink.style.display = 'none';
                     if (signoutLink) signoutLink.style.display = 'none';
                     if (dropdownLogin) dropdownLogin.style.display = '';
                     if (dropdownSignup) dropdownSignup.style.display = '';
+                    if (chatHeaderBtn) chatHeaderBtn.style.display = 'none';
                 }
             }
             updateDropdownMenu();

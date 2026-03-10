@@ -63,8 +63,9 @@ if (!username) {
                   followingList = JSON.parse(localStorage.getItem('followingList') || '[]');
                 } catch {}
                 const isFollowing = followingList.includes(username);
-                if (isFollowing) {
-                  followBtnDiv.innerHTML = `<button id=\"unfollowBtn\" class=\"btn\" style=\"background:linear-gradient(90deg,#ffb347 0%,#ffcc80 100%);color:#181818;padding:10px 24px;border-radius:6px;font-weight:700;\">Unfollow</button>`;
+                                let chatBtn = `<a href="chat.html?user=${encodeURIComponent(username)}" class="btn" style="background:linear-gradient(90deg,#232526 0%,#414345 100%);color:#fff;padding:10px 24px;border-radius:6px;font-weight:700;margin-left:10px;text-decoration:none;">Chat</a>`;
+                                if (isFollowing) {
+                                    followBtnDiv.innerHTML = `<button id=\"unfollowBtn\" class=\"btn\" style=\"background:linear-gradient(90deg,#ffb347 0%,#ffcc80 100%);color:#181818;padding:10px 24px;border-radius:6px;font-weight:700;\">Unfollow</button>` + chatBtn;
                   document.getElementById('unfollowBtn').onclick = function() {
                     fetch('https://ownshub.onrender.com/api/unfollow', {
                         method: 'POST',
@@ -88,8 +89,8 @@ if (!username) {
                     })
                     .catch(() => alert('Failed to unfollow user.'));
                   };
-                } else {
-                  followBtnDiv.innerHTML = `<button id=\"followBtn\" class=\"btn\" style=\"background:linear-gradient(90deg,#ffb347 0%,#ffcc80 100%);color:#181818;padding:10px 24px;border-radius:6px;font-weight:700;\">Follow</button>`;
+                                } else {
+                                    followBtnDiv.innerHTML = `<button id=\"followBtn\" class=\"btn\" style=\"background:linear-gradient(90deg,#ffb347 0%,#ffcc80 100%);color:#181818;padding:10px 24px;border-radius:6px;font-weight:700;\">Follow</button>` + chatBtn;
                   document.getElementById('followBtn').onclick = function() {
                     fetch('https://ownshub.onrender.com/api/follow', {
                         method: 'POST',

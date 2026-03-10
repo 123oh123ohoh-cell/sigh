@@ -1,3 +1,10 @@
+// Get all users (for chat user list)
+app.get('/api/users', (req, res) => {
+  db.all('SELECT username FROM users', (err, rows) => {
+    if (err) return res.status(500).json({ error: 'DB error' });
+    res.json(rows.map(r => r.username));
+  });
+});
 
 const express = require('express');
 const cors = require('cors');
@@ -5,12 +12,41 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const sqlite3 = require('sqlite3').verbose();
 
+
 const app = express();
+const http = require('http');
+const server = http.createServer(app);
+const { Server } = require('socket.io');
+const io = new Server(server, {
+  cors: { origin: '*', methods: ['GET', 'POST'] }
+});
 const PORT = 3001;
 const SECRET = 'supersecretkey';
 
 app.use(cors());
 app.use(express.json({ limit: '10mb' }));
+
+// --- Socket.io Online Status ---
+const onlineUsers = new Set();
+io.on('connection', (socket) => {
+  let username = null;
+  socket.on('join', (user) => {
+    username = user;
+    if (username) {
+      onlineUsers.add(username);
+      io.emit('online_users', Array.from(onlineUsers));
+    }
+  });
+  socket.on('disconnect', () => {
+    if (username) {
+      onlineUsers.delete(username);
+      io.emit('online_users', Array.from(onlineUsers));
+    }
+  });
+  socket.on('get_online_users', () => {
+    socket.emit('online_users', Array.from(onlineUsers));
+  });
+});
 
 // Root route for API status
 app.get('/', (req, res) => {
@@ -252,6 +288,6 @@ app.get('/api/comments/:videoId', (req, res) => {
   });
 });
 
-app.listen(PORT, () => {
+server.listen(PORT, () => {
   console.log(`Backend running on http://localhost:${PORT}`);
 });
