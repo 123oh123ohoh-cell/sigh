@@ -9,7 +9,7 @@ if (signupForm) {
         const password = document.getElementById('signupPassword').value;
         if (!username || !password) return alert('Please fill all fields.');
         try {
-            const res = await fetch('http://localhost:3001/api/signup', {
+            const res = await fetch('https://ownshub.onrender.com/api/signup', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ username, password })
@@ -34,7 +34,7 @@ if (loginForm) {
         const username = document.getElementById('loginUsername').value.trim();
         const password = document.getElementById('loginPassword').value;
         try {
-            const res = await fetch('http://localhost:3001/api/login', {
+            const res = await fetch('https://ownshub.onrender.com/api/login', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ username, password })
@@ -70,7 +70,7 @@ document.addEventListener('DOMContentLoaded', function() {
 // Fetch comments from backend
 async function getComments(videoId) {
     try {
-        const res = await fetch(`http://localhost:3001/api/comments/${videoId}`);
+        const res = await fetch(`https://ownshub.onrender.com/api/comments/${videoId}`);
         if (!res.ok) return [];
         return await res.json();
     } catch {
@@ -82,7 +82,7 @@ async function saveComment(videoId, text) {
     const token = localStorage.getItem('token');
     if (!token) return { error: 'Not logged in' };
     try {
-        const res = await fetch('http://localhost:3001/api/comments', {
+        const res = await fetch('https://ownshub.onrender.com/api/comments', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

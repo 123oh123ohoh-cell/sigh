@@ -25,7 +25,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (isLoggedIn) {
         fetchOptions.headers = { 'Authorization': 'Bearer ' + token };
     }
-    fetch('http://localhost:3001/api/profile', fetchOptions)
+    fetch('https://ownshub.onrender.com/api/profile', fetchOptions)
         .then(res => res.json())
         .then(data => {
             if (data.avatar) {
@@ -78,13 +78,13 @@ document.addEventListener('DOMContentLoaded', function() {
         const customPronouns = document.getElementById('customPronouns').value.trim();
         const bio = document.getElementById('bio').value.trim();
         const avatar = document.getElementById('avatarPreview').src || '';
-        fetch('http://localhost:3001/api/profile', {
+        fetch('https://ownshub.onrender.com/api/profile', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
                 'Authorization': 'Bearer ' + token
             },
-            body: JSON.stringify({ displayName, pronouns, customPronouns, bio, avatar })
+            body: JSON.stringify({ displayName, pronouns, customPronouns, bio, avatar }) // followers/following are managed by backend
         })
         .then(res => res.json())
         .then(data => {

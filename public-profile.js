@@ -11,12 +11,13 @@ const token = localStorage.getItem('token');
 const profileTitle = document.getElementById('profileTitle');
 const infoDiv = document.getElementById('publicProfileInfo');
 const editBtnDiv = document.getElementById('editProfileBtnContainer');
+const followBtnDiv = document.getElementById('followBtnContainer');
 
 if (!username) {
     infoDiv.innerHTML = '<p>No user specified.</p>';
 } else {
     profileTitle.textContent = `@${username}`;
-    fetch(`http://localhost:3001/api/profile?user=${encodeURIComponent(username)}`)
+    fetch(`https://ownshub.onrender.com/api/profile?user=${encodeURIComponent(username)}`)
         .then(res => res.json())
         .then(data => {
             // If no profile, show default
@@ -38,6 +39,9 @@ if (!username) {
                     <div class="public-profile-info">
                         <div style="font-size:1.5em;font-weight:bold;">${data.displayName || username}</div>
                         <div style="font-size:1.08em;color:#bbb;margin-top:2px;">${pronouns ? pronouns : '<span style=\'opacity:0.7;\'>No pronouns set</span>'}</div>
+                        <div style='font-size:0.98em;color:#888;margin-top:4px;'>
+                          <span><b>Followers:</b> ${data.followers || 0}</span> &nbsp;|&nbsp; <span><b>Following:</b> ${data.following || 0}</span>
+                        </div>
                     </div>
                     <div class="public-profile-bio">${data.bio ? data.bio : '<span style=\'opacity:0.7;\'>No bio yet</span>'}</div>
                 </div>
@@ -45,6 +49,66 @@ if (!username) {
             // Show edit button if viewing own profile
             if (loggedInUser && loggedInUser === username) {
                 editBtnDiv.innerHTML = '<a href="profile.html" class="btn" style="background:linear-gradient(90deg,#ffb347 0%,#ffcc80 100%);color:#181818;padding:10px 24px;border-radius:6px;font-weight:700;text-decoration:none;">Edit Profile</a>';
+                followBtnDiv.innerHTML = '';
+            } else if (loggedInUser && loggedInUser !== username) {
+                // Check if already following (using a simple localStorage workaround for demo, ideally should be backend-driven)
+                let followingList = [];
+                try {
+                  followingList = JSON.parse(localStorage.getItem('followingList') || '[]');
+                } catch {}
+                const isFollowing = followingList.includes(username);
+                if (isFollowing) {
+                  followBtnDiv.innerHTML = `<button id=\"unfollowBtn\" class=\"btn\" style=\"background:linear-gradient(90deg,#ffb347 0%,#ffcc80 100%);color:#181818;padding:10px 24px;border-radius:6px;font-weight:700;\">Unfollow</button>`;
+                  document.getElementById('unfollowBtn').onclick = function() {
+                    fetch('https://ownshub.onrender.com/api/unfollow', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': 'Bearer ' + token
+                        },
+                        body: JSON.stringify({ followee: username })
+                    })
+                    .then(res => res.json())
+                    .then(result => {
+                        if (result.success) {
+                            // Remove from localStorage
+                            const idx = followingList.indexOf(username);
+                            if (idx !== -1) followingList.splice(idx, 1);
+                            localStorage.setItem('followingList', JSON.stringify(followingList));
+                            location.reload();
+                        } else {
+                            alert('Failed to unfollow user.');
+                        }
+                    })
+                    .catch(() => alert('Failed to unfollow user.'));
+                  };
+                } else {
+                  followBtnDiv.innerHTML = `<button id=\"followBtn\" class=\"btn\" style=\"background:linear-gradient(90deg,#ffb347 0%,#ffcc80 100%);color:#181818;padding:10px 24px;border-radius:6px;font-weight:700;\">Follow</button>`;
+                  document.getElementById('followBtn').onclick = function() {
+                    fetch('https://ownshub.onrender.com/api/follow', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': 'Bearer ' + token
+                        },
+                        body: JSON.stringify({ followee: username })
+                    })
+                    .then(res => res.json())
+                    .then(result => {
+                        if (result.success) {
+                            // Add to localStorage
+                            followingList.push(username);
+                            localStorage.setItem('followingList', JSON.stringify(followingList));
+                            location.reload();
+                        } else {
+                            alert('Failed to follow user.');
+                        }
+                    })
+                    .catch(() => alert('Failed to follow user.'));
+                  };
+                }
+            } else {
+                followBtnDiv.innerHTML = '';
             }
         })
         .catch(() => {

@@ -7,21 +7,53 @@ function renderArtsGallery(arts) {
         gallery.innerHTML = '<p style="color:#bbb;text-align:center;">No art posted yet.</p>';
         return;
     }
+    const loggedInUser = localStorage.getItem('loggedInUser');
     gallery.innerHTML = '<div style="display:flex;flex-wrap:wrap;gap:24px;justify-content:center;">' +
-        arts.map(art => `
-            <div style="background:#222;border-radius:12px;padding:16px;width:220px;box-shadow:0 2px 12px rgba(0,0,0,0.12);display:flex;flex-direction:column;align-items:center;">
-                <img src="${art.image}" alt="Art" style="width:180px;height:180px;object-fit:cover;border-radius:8px;background:#333;">
+        arts.map(art => {
+            let deleteBtn = '';
+            if (loggedInUser && loggedInUser === art.username) {
+                deleteBtn = `<button class="delete-art-btn" data-artid="${art.id}" style="background:#ff4d4d;color:#fff;padding:6px 18px;border:none;border-radius:6px;font-weight:700;cursor:pointer;margin-top:10px;">Delete</button>`;
+            }
+            return `
+            <div class="arts-card" style="background:#222;border-radius:12px;padding:16px;width:220px;box-shadow:0 2px 12px rgba(0,0,0,0.12);display:flex;flex-direction:column;align-items:center;">
+                <a href="art-view.html?id=${art.id}" style="display:block;"><img src="${art.image}" alt="Art" style="width:180px;height:180px;object-fit:cover;border-radius:8px;background:#333;cursor:pointer;"></a>
                 <div style="margin-top:10px;font-weight:bold;color:#ffb347;">${art.title}</div>
                 <div style="font-size:0.98em;color:#bbb;margin:4px 0 6px 0;">by <a href="public-profile.html?user=${encodeURIComponent(art.username)}" style="color:#ffb347;">@${art.username}</a></div>
                 <div style="font-size:0.97em;color:#eee;min-height:32px;text-align:center;">${art.description || ''}</div>
                 <div style="font-size:0.85em;color:#888;margin-top:6px;">${art.date}</div>
+                ${deleteBtn}
             </div>
-        `).join('') + '</div>';
+            `;
+        }).join('') + '</div>';
+    // Add delete button event listeners
+    document.querySelectorAll('.delete-art-btn').forEach(btn => {
+        btn.addEventListener('click', async function(e) {
+            e.preventDefault();
+            if (confirm('Are you sure you want to delete this art?')) {
+                const artId = btn.getAttribute('data-artid');
+                const token = localStorage.getItem('token');
+                try {
+                    const res = await fetch('https://ownshub.onrender.com/api/arts/' + encodeURIComponent(artId), {
+                        method: 'DELETE',
+                        headers: { 'Authorization': 'Bearer ' + token }
+                    });
+                    if (res.ok) {
+                        alert('Art deleted.');
+                        fetchAndRenderArts();
+                    } else {
+                        alert('Failed to delete art.');
+                    }
+                } catch {
+                    alert('Failed to delete art.');
+                }
+            }
+        });
+    });
 }
 
 async function fetchAndRenderArts() {
     try {
-        const res = await fetch('http://localhost:3001/api/arts');
+        const res = await fetch('https://ownshub.onrender.com/api/arts');
         const arts = await res.json();
         renderArtsGallery(arts);
     } catch {
@@ -57,7 +89,7 @@ function showPostArtForm() {
         reader.onload = async function(evt) {
             const image = evt.target.result;
             try {
-                const res = await fetch('http://localhost:3001/api/arts', {
+                const res = await fetch('https://ownshub.onrender.com/api/arts', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',

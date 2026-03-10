@@ -1,3 +1,38 @@
+// Root route for API status
+app.get('/', (req, res) => {
+  res.send('Welcome to the OwnsHub Backend API!');
+});
+// Follow a user
+app.post('/api/follow', authenticateToken, (req, res) => {
+  const follower = req.user.username;
+  const { followee } = req.body;
+  if (!followee || follower === followee) return res.status(400).json({ error: 'Invalid followee' });
+  // Increment following for follower
+  db.run('UPDATE profiles SET following = following + 1 WHERE username = ?', [follower], function(err) {
+    if (err) return res.status(500).json({ error: 'DB error (following)' });
+    // Increment followers for followee
+    db.run('UPDATE profiles SET followers = followers + 1 WHERE username = ?', [followee], function(err2) {
+      if (err2) return res.status(500).json({ error: 'DB error (followers)' });
+      res.json({ success: true });
+    });
+  });
+});
+
+// Unfollow a user
+app.post('/api/unfollow', authenticateToken, (req, res) => {
+  const follower = req.user.username;
+  const { followee } = req.body;
+  if (!followee || follower === followee) return res.status(400).json({ error: 'Invalid followee' });
+  // Decrement following for follower
+  db.run('UPDATE profiles SET following = MAX(following - 1, 0) WHERE username = ?', [follower], function(err) {
+    if (err) return res.status(500).json({ error: 'DB error (following)' });
+    // Decrement followers for followee
+    db.run('UPDATE profiles SET followers = MAX(followers - 1, 0) WHERE username = ?', [followee], function(err2) {
+      if (err2) return res.status(500).json({ error: 'DB error (followers)' });
+      res.json({ success: true });
+    });
+  });
+});
 const express = require('express');
 const cors = require('cors');
 const bcrypt = require('bcryptjs');
@@ -32,7 +67,9 @@ db.serialize(() => {
     pronouns TEXT,
     customPronouns TEXT,
     bio TEXT,
-    avatar TEXT
+    avatar TEXT,
+    followers INTEGER DEFAULT 0,
+    following INTEGER DEFAULT 0
   )`, (err) => {
     if (err) console.error('Error creating profiles table:', err);
   });
@@ -103,7 +140,7 @@ app.get('/api/profile', (req, res) => {
   const username = req.query.user;
   if (username) {
     // Public profile view
-    db.get('SELECT displayName, pronouns, customPronouns, bio, avatar FROM profiles WHERE username = ?', [username], (err, row) => {
+    db.get('SELECT displayName, pronouns, customPronouns, bio, avatar, followers, following FROM profiles WHERE username = ?', [username], (err, row) => {
       if (err) return res.status(500).json({ error: 'DB error' });
       res.json(row || {});
     });
@@ -111,7 +148,7 @@ app.get('/api/profile', (req, res) => {
     // Own profile (auth required)
     authenticateToken(req, res, () => {
       const user = req.user.username;
-      db.get('SELECT displayName, pronouns, customPronouns, bio, avatar FROM profiles WHERE username = ?', [user], (err, row) => {
+      db.get('SELECT displayName, pronouns, customPronouns, bio, avatar, followers, following FROM profiles WHERE username = ?', [user], (err, row) => {
         if (err) return res.status(500).json({ error: 'DB error' });
         res.json(row || {});
       });
@@ -122,11 +159,11 @@ app.get('/api/profile', (req, res) => {
 // Update profile (auth required)
 app.post('/api/profile', authenticateToken, (req, res) => {
   const username = req.user.username;
-  const { displayName, pronouns, customPronouns, bio, avatar } = req.body;
-  db.run(`INSERT INTO profiles (username, displayName, pronouns, customPronouns, bio, avatar)
-    VALUES (?, ?, ?, ?, ?, ?)
-    ON CONFLICT(username) DO UPDATE SET displayName=excluded.displayName, pronouns=excluded.pronouns, customPronouns=excluded.customPronouns, bio=excluded.bio, avatar=excluded.avatar`,
-    [username, displayName, pronouns, customPronouns, bio, avatar],
+  const { displayName, pronouns, customPronouns, bio, avatar, followers, following } = req.body;
+  db.run(`INSERT INTO profiles (username, displayName, pronouns, customPronouns, bio, avatar, followers, following)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    ON CONFLICT(username) DO UPDATE SET displayName=excluded.displayName, pronouns=excluded.pronouns, customPronouns=excluded.customPronouns, bio=excluded.bio, avatar=excluded.avatar, followers=excluded.followers, following=excluded.following`,
+    [username, displayName, pronouns, customPronouns, bio, avatar, followers || 0, following || 0],
     function(err) {
       if (err) {
         console.error('Profile save DB error:', err);

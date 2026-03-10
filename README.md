@@ -40,14 +40,31 @@ php -S localhost:8000
 ```
 Then open: `http://localhost:8000`
 
+## Backend Setup
+
+To enable all features, you must run the backend server:
+
+1. Open a terminal and navigate to the backend folder:
+   ```bash
+   cd backend
+   ```
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
+3. Start the backend server:
+   ```bash
+   npm start
+   ```
+   The backend will run at http://localhost:3001
+
+If you want others to access your backend, deploy it to a public service (like Render, Heroku, or Vercel) and update the frontend code to use the deployed backend URL instead of http://localhost:3001.
+
 ## Technologies Used
 - HTML5
 - CSS3 (Custom Properties, Flexbox, Grid)
 - JavaScript (ES6+)
 - Vimeo API for video embedding
-
-## Video Content
-The website uses Vimeo videos for better compatibility with local file serving. All videos are properly licensed and embeddable.
 
 # gitgitownshub
 git git hurray!
