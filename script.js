@@ -77,18 +77,17 @@ async function getComments(videoId) {
         return [];
     }
 }
-// Post comment to backend
+// Post comment to backend (anonymous allowed)
 async function saveComment(videoId, text) {
-    const token = localStorage.getItem('token');
-    if (!token) return { error: 'Not logged in' };
+    // Allow anonymous comments
+    let username = localStorage.getItem('loggedInUser') || 'Anonymous';
     try {
         const res = await fetch('https://ownshub.onrender.com/api/comments', {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json',
-                'Authorization': 'Bearer ' + token
+                'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ videoId, text })
+            body: JSON.stringify({ videoId, text, username })
         });
         return await res.json();
     } catch {
@@ -100,42 +99,36 @@ async function renderComments(videoId) {
     const commentsList = document.getElementById('commentsList');
     if (!commentsList) return;
     const comments = await getComments(videoId);
-    commentsList.innerHTML = comments.length ? comments.map(c =>
-        `<div class="comment"><b><a href="public-profile.html?user=${encodeURIComponent(c.username)}" class="username-link" data-username="${c.username}">${c.username}</a></b> <span class="comment-date">${c.date}</span><br>${c.text}</div>`
-    ).join('') : '<p>No comments yet.</p>';
+    commentsList.innerHTML = comments.length ? comments.map(c => {
+        if (c.username === 'Anonymous') {
+            return `<div class="comment"><b><span class="username-link" style="color:#888">Anonymous</span></b> <span class="comment-date">${c.date}</span><br>${c.text}</div>`;
+        } else {
+            return `<div class="comment"><b><a href="public-profile.html?user=${encodeURIComponent(c.username)}" class="username-link" data-username="${c.username}">${c.username}</a></b> <span class="comment-date">${c.date}</span><br>${c.text}</div>`;
+        }
+    }).join('') : '<p>No comments yet.</p>';
 }
 
 // Attach comment form logic when player opens
 function attachCommentForm(videoId) {
     const commentForm = document.getElementById('commentForm');
     const commentInput = document.getElementById('commentInput');
-    const token = localStorage.getItem('token');
     if (!commentForm || !commentInput) return;
-    if (!token) {
-        commentInput.disabled = true;
-        commentInput.placeholder = 'Log in to comment (viewing as guest)';
-        commentForm.querySelector('button[type="submit"]').disabled = true;
-        commentForm.onsubmit = function(e) {
-            e.preventDefault();
-            alert('You must be logged in to comment!');
-        };
-    } else {
-        commentInput.disabled = false;
-        commentInput.placeholder = 'Add a comment...';
-        commentForm.querySelector('button[type="submit"]').disabled = false;
-        commentForm.onsubmit = async function(e) {
-            e.preventDefault();
-            const text = commentInput.value.trim();
-            if (!text) return;
-            const result = await saveComment(videoId, text);
-            if (result.error) {
-                alert(result.error);
-                return;
-            }
-            commentInput.value = '';
-            renderComments(videoId);
-        };
-    }
+    // Allow anyone to comment as anonymous
+    commentInput.disabled = false;
+    commentInput.placeholder = 'Add a comment...';
+    commentForm.querySelector('button[type="submit"]').disabled = false;
+    commentForm.onsubmit = async function(e) {
+        e.preventDefault();
+        const text = commentInput.value.trim();
+        if (!text) return;
+        const result = await saveComment(videoId, text);
+        if (result.error) {
+            alert(result.error);
+            return;
+        }
+        commentInput.value = '';
+        renderComments(videoId);
+    };
     // Always render comments for everyone
     renderComments(videoId);
 }

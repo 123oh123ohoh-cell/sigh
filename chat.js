@@ -123,7 +123,7 @@ fetch('https://ownshub.onrender.com/api/users')
     renderUserList();
     // Auto-select user if ?user=username is present
     const preselectUser = getQueryParam('user');
-    if (preselectUser && allUsers.some(u => u.username === preselectUser) && preselectUser !== myUsername) {
+    if (preselectUser && preselectUser !== myUsername) {
       userSearch = '';
       renderUserList();
       function trySelect() {
@@ -142,7 +142,16 @@ fetch('https://ownshub.onrender.com/api/users')
             if (input) input.focus();
           }, 100);
         } else {
-          setTimeout(trySelect, 50);
+          // If user is not in the list (e.g. not followed), still allow direct chat
+          // Fallback: create a dummy li for direct chat
+          const userObj = allUsers.find(u => u.username === preselectUser) || { username: preselectUser, displayName: preselectUser };
+          const dummyLi = document.createElement('li');
+          dummyLi.style.display = 'none';
+          selectUser(preselectUser, dummyLi);
+          setTimeout(() => {
+            const input = document.getElementById('chatInput');
+            if (input) input.focus();
+          }, 100);
         }
       }
       trySelect();

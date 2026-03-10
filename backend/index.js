@@ -326,10 +326,10 @@ app.post('/api/login', (req, res) => {
   });
 });
 
-// Post comment (auth required)
-app.post('/api/comments', authenticateToken, (req, res) => {
+// Post comment (no auth required, anonymous allowed)
+app.post('/api/comments', (req, res) => {
   const { videoId, text } = req.body;
-  const username = req.user.username;
+  let username = req.body.username || 'Anonymous';
   if (!videoId || !text) return res.status(400).json({ error: 'Missing fields' });
   const date = new Date().toLocaleString();
   db.run('INSERT INTO comments (videoId, username, text, date) VALUES (?, ?, ?, ?)', [videoId, username, text, date], function(err) {
