@@ -1,0 +1,72 @@
+/* Public Profile Page Styles */
+.public-profile-main {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  min-height: 80vh;
+  background: #181818;
+  padding: 40px 0;
+}
+
+.public-profile-container {
+  background: #222;
+  border-radius: 18px;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.25);
+  padding: 32px 36px 28px 36px;
+  max-width: 420px;
+  width: 100%;
+  margin: 0 auto;
+  color: #fff;
+}
+
+.public-profile-container h2 {
+  margin-bottom: 18px;
+  font-size: 2rem;
+  font-weight: 700;
+  color: #ffb347;
+  text-align: center;
+}
+
+.public-profile-summary {
+  margin-bottom: 18px;
+  padding: 18px 0 10px 0;
+  border-bottom: 1px solid #333;
+  text-align: center;
+}
+
+.public-profile-avatar {
+  width: 90px;
+  height: 90px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid #ffb347;
+  margin-bottom: 10px;
+  background: #333;
+}
+
+.public-profile-info {
+  font-size: 1.1rem;
+  color: #ffb347;
+  margin-bottom: 8px;
+}
+
+.public-profile-bio {
+  color: #fff;
+  font-size: 1rem;
+  margin-top: 10px;
+  text-align: center;
+}
+
+#editProfileBtnContainer {
+  margin-top: 18px;
+}
+
+@media (max-width: 600px) {
+  .public-profile-container {
+    padding: 18px 6px 18px 6px;
+    max-width: 98vw;
+  }
+  .public-profile-main {
+    padding: 10px 0;
+  }
+}
