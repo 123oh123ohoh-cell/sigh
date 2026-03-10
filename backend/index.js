@@ -1,3 +1,17 @@
+
+const express = require('express');
+const cors = require('cors');
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
+const sqlite3 = require('sqlite3').verbose();
+
+const app = express();
+const PORT = 3001;
+const SECRET = 'supersecretkey';
+
+app.use(cors());
+app.use(express.json({ limit: '10mb' }));
+
 // Root route for API status
 app.get('/', (req, res) => {
   res.send('Welcome to the OwnsHub Backend API!');
@@ -33,18 +47,6 @@ app.post('/api/unfollow', authenticateToken, (req, res) => {
     });
   });
 });
-const express = require('express');
-const cors = require('cors');
-const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
-const sqlite3 = require('sqlite3').verbose();
-
-const app = express();
-const PORT = 3001;
-const SECRET = 'supersecretkey';
-
-app.use(cors());
-app.use(express.json({ limit: '10mb' }));
 
 // SQLite setup
 const db = new sqlite3.Database('./ownshub.db');
