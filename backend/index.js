@@ -170,19 +170,27 @@ app.get('/api/profile', (req, res) => {
 // Update profile (auth required)
 app.post('/api/profile', authenticateToken, (req, res) => {
   const username = req.user.username;
-  const { displayName, pronouns, customPronouns, bio, avatar, followers, following } = req.body;
-  db.run(`INSERT INTO profiles (username, displayName, pronouns, customPronouns, bio, avatar, followers, following)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-    ON CONFLICT(username) DO UPDATE SET displayName=excluded.displayName, pronouns=excluded.pronouns, customPronouns=excluded.customPronouns, bio=excluded.bio, avatar=excluded.avatar, followers=excluded.followers, following=excluded.following`,
-    [username, displayName, pronouns, customPronouns, bio, avatar, followers || 0, following || 0],
-    function(err) {
-      if (err) {
-        console.error('Profile save DB error:', err);
-        return res.status(500).json({ error: 'DB error', details: err.message });
-      }
-      res.json({ success: true });
+  const { displayName, pronouns, customPronouns, bio, avatar } = req.body;
+  // Fetch current followers/following to preserve them
+  db.get('SELECT followers, following FROM profiles WHERE username = ?', [username], (err, row) => {
+    let followers = 0, following = 0;
+    if (row) {
+      followers = row.followers || 0;
+      following = row.following || 0;
     }
-  );
+    db.run(`INSERT INTO profiles (username, displayName, pronouns, customPronouns, bio, avatar, followers, following)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+      ON CONFLICT(username) DO UPDATE SET displayName=excluded.displayName, pronouns=excluded.pronouns, customPronouns=excluded.customPronouns, bio=excluded.bio, avatar=excluded.avatar`,
+      [username, displayName, pronouns, customPronouns, bio, avatar, followers, following],
+      function(err) {
+        if (err) {
+          console.error('Profile save DB error:', err);
+          return res.status(500).json({ error: 'DB error', details: err.message });
+        }
+        res.json({ success: true });
+      }
+    );
+  });
 });
 
 // Helper: authenticate JWT

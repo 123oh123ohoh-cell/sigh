@@ -33,11 +33,17 @@ if (!username) {
             let pronouns = data.pronouns === 'custom' ? data.customPronouns : data.pronouns;
             // Default avatar SVG (circle with user icon)
             const defaultAvatar = `<svg width="110" height="110" viewBox="0 0 110 110" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="55" cy="55" r="54" fill="#e0e0e0" stroke="#fff" stroke-width="2"/><ellipse cx="55" cy="46" rx="26" ry="26" fill="#bdbdbd"/><ellipse cx="55" cy="85" rx="36" ry="20" fill="#bdbdbd"/></svg>`;
+            let nameHtml = '';
+            if (username === 'own') {
+                nameHtml = `<span style="font-size:1.5em;font-weight:bold;background:linear-gradient(90deg,#ffb347 0%,#ff416c 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">${data.displayName || username}</span><br><span style="font-size:1em;font-weight:600;color:#ffb347;">Developer</span>`;
+            } else {
+                nameHtml = `<div style="font-size:1.5em;font-weight:bold;">${data.displayName || username}</div>`;
+            }
             infoDiv.innerHTML = `
                 <div class="public-profile-summary">
                     ${data.avatar ? `<img class='public-profile-avatar' src='${data.avatar}' alt='Avatar'>` : defaultAvatar}
                     <div class="public-profile-info">
-                        <div style="font-size:1.5em;font-weight:bold;">${data.displayName || username}</div>
+                        ${nameHtml}
                         <div style="font-size:1.08em;color:#bbb;margin-top:2px;">${pronouns ? pronouns : '<span style=\'opacity:0.7;\'>No pronouns set</span>'}</div>
                         <div style='font-size:0.98em;color:#888;margin-top:4px;'>
                           <span><b>Followers:</b> ${data.followers || 0}</span> &nbsp;|&nbsp; <span><b>Following:</b> ${data.following || 0}</span>
