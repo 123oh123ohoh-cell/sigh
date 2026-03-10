@@ -48,3 +48,6 @@ Then open: `http://localhost:8000`
 
 ## Video Content
 The website uses Vimeo videos for better compatibility with local file serving. All videos are properly licensed and embeddable.
+
+# gitgitownshub
+git git hurray!
