@@ -63,6 +63,7 @@ db.serialize(() => {
     text TEXT,
     date TEXT
   )`);
+
   db.run(`CREATE TABLE IF NOT EXISTS profiles (
     username TEXT PRIMARY KEY,
     displayName TEXT,
@@ -74,6 +75,14 @@ db.serialize(() => {
     following INTEGER DEFAULT 0
   )`, (err) => {
     if (err) console.error('Error creating profiles table:', err);
+  });
+
+  // Migration: Add followers and following columns if missing
+  db.run('ALTER TABLE profiles ADD COLUMN followers INTEGER DEFAULT 0', err => {
+    if (err && !/duplicate column/.test(err.message)) console.error('Migration error (followers):', err.message);
+  });
+  db.run('ALTER TABLE profiles ADD COLUMN following INTEGER DEFAULT 0', err => {
+    if (err && !/duplicate column/.test(err.message)) console.error('Migration error (following):', err.message);
   });
 
   // Arts table
